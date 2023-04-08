@@ -14,991 +14,1041 @@
   limitations under the License.
 -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Locator</title>
-    <meta charset="utf-8">
+    <title>Neighborhood Discovery</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/handlebars/4.7.7/handlebars.min.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
     <style>
-      html,
-      body {
+      html, body {
         height: 100%;
         margin: 0;
         padding: 0;
       }
 
-      #map-container {
-        width: 300%;
-        height: 30%;
-        position: relative;
-        font-family: "Roboto", sans-serif;
+      .neighborhood-discovery {
         box-sizing: border-box;
+        font-family: "Roboto", sans-serif;
+        height: 100%;
+        position: relative;
+        width: 100%;
       }
 
-      #map-container a {
+      .neighborhood-discovery a {
+        color: #4285f4;
         text-decoration: none;
-        color: #1967d2;
       }
 
-      #map-container button {
+      .neighborhood-discovery button {
         background: none;
-        color: inherit;
         border: none;
-        padding: 0;
+        color: inherit;
+        cursor: pointer;
         font: inherit;
         font-size: inherit;
+        padding: 0;
+      }
+
+      .neighborhood-discovery .info {
+        color: #555;
+        font-size: 0.9em;
+        margin-top: 0.3em;
+      }
+
+      .neighborhood-discovery .panel {
+        background: white;
+        bottom: 0;
+        box-sizing: border-box;
+        left: 0;
+        overflow-y: auto;
+        position: absolute;
+        top: 0;
+        width: 20em;
+      }
+
+      .neighborhood-discovery .panel.no-scroll {
+        overflow-y: hidden;
+      }
+
+      .neighborhood-discovery .photo {
+        background-color: #dadce0;
+        background-position: center;
+        background-size: cover;
+        border-radius: 0.3em;
         cursor: pointer;
       }
 
-      #gmp-map {
-        position: absolute;
-        left: 22em;
-        top: 0;
-        right: 0;
-        bottom: 0;
-      }
-
-      #locations-panel {
-        position: absolute;
-        left: 0;
-        width: 22em;
-        top: 0;
-        bottom: 0;
-        overflow-y: auto;
+      .neighborhood-discovery .navbar {
         background: white;
-        padding: 0.5em;
-        box-sizing: border-box;
+        position: sticky;
+        top: 0;
+        z-index: 2;
       }
 
-      @media only screen and (max-width: 876px) {
-        #gmp-map {
-          left: 0;
-          bottom: 50%;
-        }
+      .neighborhood-discovery .right {
+        float: right;
+      }
 
-        #locations-panel {
-          top: 50%;
+      .neighborhood-discovery .star-icon {
+        filter: invert(88%) sepia(60%) saturate(2073%) hue-rotate(318deg) brightness(93%) contrast(104%);
+        height: 1.2em;
+        margin-right: -0.3em;
+        margin-top: -0.08em;
+        vertical-align: top;
+        width: 1.2em;
+      }
+
+      .neighborhood-discovery .star-icon:last-child {
+        margin-right: 0.2em;
+      }
+
+      .neighborhood-discovery .map {
+        bottom: 0;
+        left: 20em;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      @media only screen and (max-width: 640px) {
+        .neighborhood-discovery .panel {
           right: 0;
+          top: 50%;
           width: unset;
         }
+
+        .neighborhood-discovery .map {
+          bottom: 50%;
+          left: 0;
+        }
       }
 
-      #locations-panel-list > header {
-        padding: 1.4em 1.4em 0 1.4em;
+      /* --------------------------- PLACES PANEL --------------------------- */
+
+      .neighborhood-discovery .places-panel {
+        box-shadow: 0 0 10px rgb(60 64 67 / 28%);
+        z-index: 1;
       }
 
-      #locations-panel-list h1.search-title {
-        font-size: 1em;
-        font-weight: 500;
-        margin: 0;
+      .neighborhood-discovery .places-panel header {
+        padding: 0.5em;
       }
 
-      #locations-panel-list h1.search-title > img {
-        vertical-align: bottom;
-        margin-top: -1em;
-      }
-
-      #locations-panel-list .search-input {
-        width: 100%;
-        margin-top: 0.8em;
-        position: relative;
-      }
-
-      #locations-panel-list .search-input input {
-        width: 100%;
+      .neighborhood-discovery .search-input input {
         border: 1px solid rgba(0, 0, 0, 0.2);
         border-radius: 0.3em;
-        height: 2.2em;
         box-sizing: border-box;
+        font-size: 1em;
+        height: 2.2em;
         padding: 0 2.5em 0 1em;
-        font-size: 1em;
-      }
-
-      #locations-panel-list .search-input-overlay {
-        position: absolute;
-      }
-
-      #locations-panel-list .search-input-overlay.search {
-        right: 2px;
-        top: 2px;
-        bottom: 2px;
-        width: 2.4em;
-      }
-
-      #locations-panel-list .search-input-overlay.search button {
         width: 100%;
-        height: 100%;
-        border-radius: 0.2em;
-        color: black;
-        background: transparent;
       }
 
-      #locations-panel-list .search-input-overlay.search .icon {
-        margin-top: 0.05em;
-        vertical-align: top;
-      }
-
-      #locations-panel-list .section-name {
-        font-weight: 500;
-        font-size: 0.9em;
-        margin: 1.8em 0 1em 1.5em;
-      }
-
-      #locations-panel-list .location-result {
-        position: relative;
-        padding: 0.8em 3.5em 0.8em 1.4em;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-        cursor: pointer;
-      }
-
-      #locations-panel-list .location-result:first-of-type {
-        border-top: 1px solid rgba(0, 0, 0, 0.12);
-      }
-
-      #locations-panel-list .location-result:last-of-type {
-        border-bottom: none;
-      }
-
-      #locations-panel-list .location-result.selected {
-        outline: 2px solid #4285f4;
-      }
-
-      #locations-panel-list button.select-location {
-        margin-bottom: 0.6em;
-        text-align: left;
-      }
-
-      #locations-panel-list .location-result h2.name {
-        font-size: 1em;
-        font-weight: 500;
-        margin: 0;
-      }
-
-      #locations-panel-list .location-result .address {
-        font-size: 0.9em;
-        margin-bottom: 0.5em;
-      }
-
-      #locations-panel-list .directions-button {
+      .neighborhood-discovery .search-input button {
         position: absolute;
-        right: 1.2em;
-        top: 2.3em;
+        right: 0.8em;
+        top: 0.8em;
       }
 
-      #locations-panel-list .directions-button-background:hover {
-        fill: rgba(116,120,127,0.1);
-      }
-
-      #locations-panel-list .directions-button-background {
-        fill: rgba(255,255,255,0.01);
-      }
-
-      #locations-panel-list .location-result .distance {
-        position: absolute;
-        top: 0.9em;
-        right: 0;
-        text-align: center;
-        font-size: 0.9em;
-        width: 5em;
-      }
-
-      #locations-panel-list .option-container {
-        display: inline-block;
-        margin: 0.2em 0;
+      .neighborhood-discovery .show-more-button {
+        bottom: 0.5em;
+        display: none;
+        left: 28%;
+        line-height: 1.5em;
+        padding: 0.6em;
         position: relative;
+        width: 44%;
       }
 
-      #locations-panel-list .option-container button:hover,
-      #locations-panel-list .option-container a:hover {
-        background-color: #f1f3f4;
+      .neighborhood-discovery .show-more-button.sticky {
+        background: white;
+        border-radius: 1.5em;
+        box-shadow: 0 4px 10px rgb(60 64 67 / 28%);
+        position: sticky;
+        z-index: 2;
       }
 
-      #locations-panel-list .option {
-        border: 1px solid #bdc1c6;
-        border-radius: 0.9em;
-        color: #1967d2;
-        font-size: 0.9em;
-        font-weight: 500;
-        padding: 0.3em 0;
+      .neighborhood-discovery .show-more-button:disabled {
+        opacity: 0.5;
       }
 
-      #locations-panel-list .option > span {
-        margin: 0 0.9em;
-      }
-
-      #location-results-list {
+      .neighborhood-discovery .place-results-list {
         list-style-type: none;
         margin: 0;
         padding: 0;
       }
 
-      /* ------------- DETAILS PANEL ------------------------------- */
-      #locations-panel-details {
-        padding: 1.4em;
-        box-sizing: border-box;
-        display: none;
+      .neighborhood-discovery .place-result {
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        display: flex;
+        padding: 0.8em;
       }
 
-      #locations-panel-details .back-button {
+      .neighborhood-discovery .place-result .text {
+        flex-grow: 1;
+      }
+
+      .neighborhood-discovery .place-result .name {
         font-size: 1em;
         font-weight: 500;
-        color: #1967d2;
-        display: block;
-        text-decoration: none;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        font-family: inherit;
+        text-align: left;
       }
 
-      #locations-panel-details .back-button .icon {
-        width: 20px;
-        height: 20px;
-        vertical-align: bottom;
-
-        /* Match link color #1967d2 */
-        filter: invert(30%) sepia(67%) saturate(7379%) hue-rotate(209deg) brightness(95%) contrast(80%);
+      .neighborhood-discovery .place-result .photo {
+        flex: 0 0 4em;
+        height: 4em;
+        margin-left: 0.8em;
       }
 
-      #locations-panel-details > header {
-        text-align: center;
+      /* -------------------------- DETAILS PANEL --------------------------- */
+
+      .neighborhood-discovery .details-panel {
+        display: none;
+        z-index: 20;
       }
 
-      #locations-panel-details .banner {
-        margin-top: 1em;
+      .neighborhood-discovery .details-panel .back-button {
+        color: #4285f4;
+        padding: 0.9em;
       }
 
-      #locations-panel-details h2 {
-        font-size: 1.1em;
-        font-weight: 500;
-        margin-bottom: 0.3em;
-      }
-
-      #locations-panel-details .distance {
-        font-size: 0.9em;
-        text-align: center;
-      }
-
-      #locations-panel-details .address {
-        text-align: center;
-        font-size: 0.9em;
-        margin-top: 1.3em;
-      }
-
-      #locations-panel-details .atmosphere {
-        text-align: center;
-        font-size: 0.9em;
-        margin: 0.8em 0;
-      }
-
-      #locations-panel-details .star-rating-numeric {
-        color: #555;
-      }
-
-      #locations-panel-details .star-icon {
-        width: 1.2em;
+      .neighborhood-discovery .details-panel .back-button .icon {
+        /* Match link color #4285f4 */
+        filter: invert(47%) sepia(71%) saturate(2372%) hue-rotate(200deg) brightness(97%) contrast(98%);
         height: 1.2em;
-        margin-right: -0.3em;
-        margin-top: -0.08em;
-        vertical-align: top;
-        filter: invert(88%) sepia(60%) saturate(2073%) hue-rotate(318deg) brightness(93%) contrast(104%);
+        width: 1.2em;
+        vertical-align: bottom;
       }
 
-      #locations-panel-details .star-icon:last-of-type {
-        margin-right: 0.2em;
+      .neighborhood-discovery .details-panel header {
+        padding: 0.9em;
       }
 
-      #locations-panel-details .price-dollars {
-        color: #555;
+      .neighborhood-discovery .details-panel h2 {
+        font-size: 1.4em;
+        font-weight: 400;
+        margin: 0;
       }
 
-      #locations-panel-details hr {
-        height: 1px;
-        color: rgba(0, 0, 0, 0.12);
-        background-color: rgba(0, 0, 0, 0.12);
-        border: none;
-        margin-bottom: 1em;
+      .neighborhood-discovery .details-panel .section {
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        padding: 0.9em;
       }
 
-      #locations-panel-details .contact {
+      .neighborhood-discovery .details-panel .contact {
+        align-items: center;
+        display: flex;
         font-size: 0.9em;
         margin: 0.8em 0;
-        display: flex;
-        align-items: center;
       }
 
-      #locations-panel-details .contact .icon {
-        flex: 0 0 auto;
+      .neighborhood-discovery .details-panel .contact .icon {
         width: 1.5em;
         height: 1.5em;
       }
 
-      #locations-panel-details .contact .right {
-        padding: 0.1em 0 0 1em;
+      .neighborhood-discovery .details-panel .contact .text {
+        margin-left: 1em;
       }
 
-      #locations-panel-details .hours .weekday {
+      .neighborhood-discovery .details-panel .contact .weekday {
         display: inline-block;
         width: 5em;
       }
 
-      #locations-panel-details .website a {
-        white-space: nowrap;
-        display: inline-block;
-        overflow: hidden;
-        max-width: 16em;
-        text-overflow: ellipsis;
+      .neighborhood-discovery .details-panel .photos {
+        text-align: center;
       }
 
-      #locations-panel-details p.attribution {
+      .neighborhood-discovery .details-panel .photo {
+        display: inline-block;
+        height: 5.5em;
+        width: 5.5em;
+      }
+
+      .neighborhood-discovery .details-panel .review {
+        margin-top: 1.2em;
+      }
+
+      .neighborhood-discovery .details-panel .review .reviewer-avatar {
+        background-repeat: no-repeat;
+        background-size: cover;
+        float: left;
+        height: 1.8em;
+        margin-right: 0.8em;
+        width: 1.8em;
+      }
+
+      .neighborhood-discovery .details-panel .review .reviewer-name {
+        color: #202124;
+        font-weight: 500;
+        line-height: 1.8em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .neighborhood-discovery .details-panel .review .rating {
+        margin: 0.5em 0;
+      }
+
+      .neighborhood-discovery .details-panel .attribution {
         color: #777;
         margin: 0;
         font-size: 0.8em;
         font-style: italic;
       }
+
+      /* --------------------------- PHOTO MODAL ---------------------------- */
+
+      .neighborhood-discovery .photo-modal {
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        height: 100%;
+        position: fixed;
+        width: 100%;
+        z-index: 100;
+      }
+
+      .neighborhood-discovery .photo-modal > img {
+        bottom: 0;
+        left: 0;
+        margin: auto;
+        max-height: 100%;
+        max-width: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      .neighborhood-discovery .photo-modal > div {
+        border-radius: 0.4em;
+        color: white;
+        background: rgba(0, 0, 0, 0.6);
+        margin: 1em;
+        padding: 0.9em;
+        position: absolute;
+      }
+
+      .neighborhood-discovery .photo-modal .back-button .icon {
+        filter: brightness(0) invert(1);
+        margin: 0.4em 0.6em 0 0;
+      }
+
+      .neighborhood-discovery .photo-modal .photo-text {
+        float: right;
+      }
+
+      .neighborhood-discovery .photo-modal .photo-attrs {
+        font-size: 0.8em;
+        margin-top: 0.3em;
+      }
     </style>
     <script>
       'use strict';
 
-      /** Hide a DOM element. */
-      function hideElement(el) {
+      /** Hides a DOM element and optionally focuses on focusEl. */
+      function hideElement(el, focusEl) {
         el.style.display = 'none';
+        if (focusEl) focusEl.focus();
       }
 
-      /** Show a DOM element that has been hidden. */
-      function showElement(el) {
+      /** Shows a DOM element that has been hidden and optionally focuses on focusEl. */
+      function showElement(el, focusEl) {
         el.style.display = 'block';
+        if (focusEl) focusEl.focus();
       }
 
-      /** Helper function to generate a Google Maps directions URL */
-      function generateDirectionsURL(origin, destination) {
-        const googleMapsUrlBase = 'https://www.google.com/maps/dir/?';
-        const searchParams = new URLSearchParams('api=1');
-        searchParams.append('origin', origin);
-        const destinationParam = [];
-        // Add title to destinationParam except in cases where Quick Builder set
-        // the title to the first line of the address
-        if (destination.title !== destination.address1) {
-          destinationParam.push(destination.title);
+      /** Determines if a DOM element contains content that cannot be scrolled into view. */
+      function hasHiddenContent(el) {
+        const noscroll = window.getComputedStyle(el).overflowY.includes('hidden');
+        return noscroll && el.scrollHeight > el.clientHeight;
+      }
+
+      /** Format a Place Type string by capitalizing and replacing underscores with spaces. */
+      function formatPlaceType(str) {
+        const capitalized = str.charAt(0).toUpperCase() + str.slice(1);
+        return capitalized.replace(/_/g, ' ');
+      }
+
+      /** Initializes an array of zeros with the given size. */
+      function initArray(arraySize) {
+        const array = [];
+        while (array.length < arraySize) {
+          array.push(0);
         }
-        destinationParam.push(destination.address1, destination.address2);
-        searchParams.append('destination', destinationParam.join(','));
-        return googleMapsUrlBase + searchParams.toString();
+        return array;
+      }
+
+      /** Assigns star icons to an object given its rating (out of 5). */
+      function addStarIcons(obj) {
+        if (!obj.rating) return;
+        const starsOutOfTen = Math.round(2 * obj.rating);
+        const fullStars = Math.floor(starsOutOfTen / 2);
+        const halfStars = fullStars !== starsOutOfTen / 2 ? 1 : 0;
+        const emptyStars = 5 - fullStars - halfStars;
+
+        // Express stars as arrays to make iterating in Handlebars easy.
+        obj.fullStarIcons = initArray(fullStars);
+        obj.halfStarIcons = initArray(halfStars);
+        obj.emptyStarIcons = initArray(emptyStars);
       }
 
       /**
-       * Defines an instance of the Locator+ solution, to be instantiated
-       * when the Maps library is loaded.
+       * Constructs an array of opening hours by day from a PlaceOpeningHours object,
+       * where adjacent days of week with the same hours are collapsed into one element.
        */
-      function LocatorPlus(configuration) {
-        const locator = this;
+      function parseDaysHours(openingHours) {
+        const daysHours = openingHours.weekday_text.map((e) => e.split(/\:\s+/))
+                  .map((e) => ({'days': e[0].substr(0, 3), 'hours': e[1]}));
 
-        locator.locations = configuration.locations || [];
-        locator.capabilities = configuration.capabilities || {};
-
-        const mapEl = document.getElementById('gmp-map');
-        const panelEl = document.getElementById('locations-panel');
-        locator.panelListEl = document.getElementById('locations-panel-list');
-        const sectionNameEl =
-            document.getElementById('location-results-section-name');
-        const resultsContainerEl = document.getElementById('location-results-list');
-
-        const itemsTemplate = Handlebars.compile(
-            document.getElementById('locator-result-items-tmpl').innerHTML);
-
-        locator.searchLocation = null;
-        locator.searchLocationMarker = null;
-        locator.selectedLocationIdx = null;
-        locator.userCountry = null;
-
-        // Initialize the map -------------------------------------------------------
-        locator.map = new google.maps.Map(mapEl, configuration.mapOptions);
-
-        // Store selection.
-        const selectResultItem = function(locationIdx, panToMarker, scrollToResult) {
-          locator.selectedLocationIdx = locationIdx;
-          for (let locationElem of resultsContainerEl.children) {
-            locationElem.classList.remove('selected');
-            if (getResultIndex(locationElem) === locator.selectedLocationIdx) {
-              locationElem.classList.add('selected');
-              if (scrollToResult) {
-                panelEl.scrollTop = locationElem.offsetTop;
-              }
+        for (let i = 1; i < daysHours.length; i++) {
+          if (daysHours[i - 1].hours === daysHours[i].hours) {
+            if (daysHours[i - 1].days.indexOf('-') !== -1) {
+              daysHours[i - 1].days =
+                  daysHours[i - 1].days.replace(/\w+$/, daysHours[i].days);
+            } else {
+              daysHours[i - 1].days += ' - ' + daysHours[i].days;
             }
+            daysHours.splice(i--, 1);
           }
-          if (panToMarker && (locationIdx != null)) {
-            locator.map.panTo(locator.locations[locationIdx].coords);
-          }
-        };
+        }
+        return daysHours;
+      }
 
-        // Create a marker for each location.
-        const markers = locator.locations.map(function(location, index) {
-          const marker = new google.maps.Marker({
-            position: location.coords,
-            map: locator.map,
-            title: location.title,
-          });
-          marker.addListener('click', function() {
-            selectResultItem(index, false, true);
-          });
-          return marker;
-        });
+      /** Number of POIs to show on widget load. */
+      const ND_NUM_PLACES_INITIAL = 5;
 
-        // Fit map to marker bounds.
-        locator.updateBounds = function() {
-          const bounds = new google.maps.LatLngBounds();
-          if (locator.searchLocationMarker) {
-            bounds.extend(locator.searchLocationMarker.getPosition());
-          }
-          for (let i = 0; i < markers.length; i++) {
-            bounds.extend(markers[i].getPosition());
-          }
-          locator.map.fitBounds(bounds);
-        };
-        if (locator.locations.length) {
-          locator.updateBounds();
+      /** Number of additional POIs to show when 'Show More' button is clicked. */
+      const ND_NUM_PLACES_SHOW_MORE = 5;
+
+      /** Maximum number of place photos to show on the details panel. */
+      const ND_NUM_PLACE_PHOTOS_MAX = 6;
+
+      /** Minimum zoom level at which the default map POI pins will be shown. */
+      const ND_DEFAULT_POI_MIN_ZOOM = 18;
+
+      /** Mapping of Place Types to Material Icons used to render custom map markers. */
+      const ND_MARKER_ICONS_BY_TYPE = {
+        // Full list of icons can be found at https://fonts.google.com/icons
+        '_default': 'circle',
+        'restaurant': 'restaurant',
+        'cafe': 'local_cafe',
+        'night_club': 'nightlife',
+        'bar': 'local_bar',
+        'park': 'park',
+        'movie_theater': 'theaters',
+        'museum': 'museum',
+        'supermarket': 'local_grocery_store',
+        'book_store': 'local_mall',
+        'clothing_store': 'local_mall',
+        'home_goods_store': 'local_mall',
+        'shopping_mall': 'local_mall',
+        'primary_school': 'school',
+        'secondary_school': 'school',
+      };
+
+      /**
+       * Defines an instance of the Neighborhood Discovery widget, to be
+       * instantiated when the Maps library is loaded.
+       */
+      function NeighborhoodDiscovery(configuration) {
+        const widget = this;
+        const widgetEl = document.querySelector('.neighborhood-discovery');
+
+        widget.center = configuration.mapOptions.center;
+        widget.places = configuration.pois || [];
+
+        // Initialize core functionalities -------------------------------------
+
+        initializeMap();
+        initializePlaceDetails();
+        initializeSidePanel();
+
+        // Initialize additional capabilities ----------------------------------
+
+        initializeSearchInput();
+
+        // Initializer function definitions ------------------------------------
+
+        /** Initializes the interactive map and adds place markers. */
+        function initializeMap() {
+          const mapOptions = configuration.mapOptions;
+          widget.mapBounds = new google.maps.Circle(
+            {center: widget.center, radius: configuration.mapRadius}).getBounds();
+          mapOptions.restriction = {latLngBounds: widget.mapBounds};
+          mapOptions.mapTypeControlOptions = {position: google.maps.ControlPosition.TOP_RIGHT};
+          widget.map = new google.maps.Map(widgetEl.querySelector('.map'), mapOptions);
+          widget.map.fitBounds(widget.mapBounds, /* padding= */ 0);
+          widget.map.addListener('click', (e) => {
+            // Check if user clicks on a POI pin from the base map.
+            if (e.placeId) {
+              e.stop();
+              widget.selectPlaceById(e.placeId);
+            }
+          });
+          widget.map.addListener('zoom_changed', () => {
+            // Customize map styling to show/hide default POI pins or text based on zoom level.
+            const hideDefaultPoiPins = widget.map.getZoom() < ND_DEFAULT_POI_MIN_ZOOM;
+            widget.map.setOptions({
+              styles: [{
+                featureType: 'poi',
+                elementType: hideDefaultPoiPins ? 'labels' : 'labels.text',
+                stylers: [{visibility: 'off'}],
+              }],
+            });
+          });
+
+          const markerPath = widgetEl.querySelector('.marker-pin path').getAttribute('d');
+          const drawMarker = function(title, position, fillColor, strokeColor, labelText) {
+            return new google.maps.Marker({
+              title: title,
+              position: position,
+              map: widget.map,
+              icon: {
+                path: markerPath,
+                fillColor: fillColor,
+                fillOpacity: 1,
+                strokeColor: strokeColor,
+                anchor: new google.maps.Point(13, 35),
+                labelOrigin: new google.maps.Point(13, 13),
+              },
+              label: {
+                text: labelText,
+                color: 'white',
+                fontSize: '16px',
+                fontFamily: 'Material Icons',
+              },
+            });
+          };
+
+          // Add marker for the specified Place object.
+          widget.addPlaceMarker = function(place) {
+            place.marker = drawMarker(place.name, place.coords, '#EA4335', '#C5221F', place.icon);
+            place.marker.addListener('click', () => void widget.selectPlaceById(place.placeId));
+          };
+
+          // Fit map to bounds that contain all markers of the specified Place objects.
+          widget.updateBounds = function(places) {
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend(widget.center);
+            for (let place of places) {
+              bounds.extend(place.marker.getPosition());
+            }
+            widget.map.fitBounds(bounds, /* padding= */ 100);
+          };
+
+          // Marker used to highlight a place from Autocomplete search.
+          widget.selectedPlaceMarker = new google.maps.Marker({title: 'Point of Interest'});
         }
 
-        // Get the distance of a store location to the user's location,
-        // used in sorting the list.
-        const getLocationDistance = function(location) {
-          if (!locator.searchLocation) return null;
+        /** Initializes Place Details service for the widget. */
+        function initializePlaceDetails() {
+          const detailsService = new google.maps.places.PlacesService(widget.map);
+          const placeIdsToDetails = new Map();  // Create object to hold Place results.
 
-          // Use travel distance if available (from Distance Matrix).
-          if (location.travelDistanceValue != null) {
-            return location.travelDistanceValue;
+          for (let place of widget.places) {
+            placeIdsToDetails.set(place.placeId, place);
+            place.fetchedFields = new Set(['place_id']);
           }
 
-          // Fall back to straight-line distance.
-          return google.maps.geometry.spherical.computeDistanceBetween(
-              new google.maps.LatLng(location.coords),
-              locator.searchLocation.location);
-        };
+          widget.fetchPlaceDetails = function(placeId, fields, callback) {
+            if (!placeId || !fields) return;
 
-        // Render the results list --------------------------------------------------
-
-        // When the results list re-renders, always update directions on the
-        // first selection event.
-        let updateDirectionsOnSelect;
-
-        const getResultIndex = function(elem) {
-          return parseInt(elem.getAttribute('data-location-index'));
-        };
-
-        locator.renderResultsList = function() {
-          let locations = locator.locations.slice();
-          for (let i = 0; i < locations.length; i++) {
-            locations[i].index = i;
-          }
-          if (locator.searchLocation) {
-            sectionNameEl.textContent =
-                'Nearest locations (' + locations.length + ')';
-            locations.sort(function(a, b) {
-              return getLocationDistance(a) - getLocationDistance(b);
-            });
-          } else {
-            sectionNameEl.textContent = `All locations (${locations.length})`;
-          }
-          const resultItemContext = {locations: locations};
-          resultsContainerEl.innerHTML = itemsTemplate(resultItemContext);
-          updateDirectionsOnSelect = true;
-          for (let item of resultsContainerEl.children) {
-            const resultIndex = getResultIndex(item);
-            if (resultIndex === locator.selectedLocationIdx) {
-              item.classList.add('selected');
+            // Check for field existence in Place object.
+            let place = placeIdsToDetails.get(placeId);
+            if (!place) {
+              place = {placeId: placeId, fetchedFields: new Set(['place_id'])};
+              placeIdsToDetails.set(placeId, place);
+            }
+            const missingFields = fields.filter((field) => !place.fetchedFields.has(field));
+            if (missingFields.length === 0) {
+              callback(place);
+              return;
             }
 
-            const resultSelectionHandler = function() {
-              if (resultIndex !== locator.selectedLocationIdx ||
-                    updateDirectionsOnSelect) {
-                selectResultItem(resultIndex, true, false);
-                locator.updateDirections();
-                updateDirectionsOnSelect = false;
-              }
-            };
-
-            // Clicking anywhere on the item selects this location.
-            // Additionally, create a button element to make this behavior
-            // accessible under tab navigation.
-            item.addEventListener('click', resultSelectionHandler);
-            item.querySelector('.select-location')
-                .addEventListener('click', function(e) {
-                  resultSelectionHandler();
-                  e.stopPropagation();
-                });
-
-            item.querySelector('.details-button')
-                .addEventListener('click', function() {
-                  locator.showDetails(resultIndex);
-                });
-
-            // Clicking the directions button will open Google Maps directions in a
-            // new tab
-            const origin = (locator.searchLocation != null) ?
-                locator.searchLocation.location :
-                '';
-            const destination = locator.locations[resultIndex];
-            const googleMapsUrl = generateDirectionsURL(origin, destination);
-            item.querySelector('.directions-button')
-                .setAttribute('href', googleMapsUrl);
-          }
-        };
-
-        // Optional capability initialization --------------------------------------
-        initializeSearchInput(locator);
-        initializeDistanceMatrix(locator);
-        initializeDirections(locator);
-        initializeDetails(locator);
-
-        // Initial render of results -----------------------------------------------
-        locator.renderResultsList();
-      }
-
-      /** When the search input capability is enabled, initialize it. */
-      function initializeSearchInput(locator) {
-        const geocodeCache = new Map();
-        const geocoder = new google.maps.Geocoder();
-
-        const searchInputEl = document.getElementById('location-search-input');
-        const searchButtonEl = document.getElementById('location-search-button');
-
-        const updateSearchLocation = function(address, location) {
-          if (locator.searchLocationMarker) {
-            locator.searchLocationMarker.setMap(null);
-          }
-          if (!location) {
-            locator.searchLocation = null;
-            return;
-          }
-          locator.searchLocation = {'address': address, 'location': location};
-          locator.searchLocationMarker = new google.maps.Marker({
-            position: location,
-            map: locator.map,
-            title: 'My location',
-            icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 12,
-              fillColor: '#3367D6',
-              fillOpacity: 0.5,
-              strokeOpacity: 0,
-            }
-          });
-
-          // Update the locator's idea of the user's country, used for units. Use
-          // `formatted_address` instead of the more structured `address_components`
-          // to avoid an additional billed call.
-          const addressParts = address.split(' ');
-          locator.userCountry = addressParts[addressParts.length - 1];
-
-          // Update map bounds to include the new location marker.
-          locator.updateBounds();
-
-          // Update the result list so we can sort it by proximity.
-          locator.renderResultsList();
-
-          locator.updateTravelTimes();
-
-          locator.clearDirections();
-        };
-
-        const geocodeSearch = function(query) {
-          if (!query) {
-            return;
-          }
-
-          const handleResult = function(geocodeResult) {
-            searchInputEl.value = geocodeResult.formatted_address;
-            updateSearchLocation(
-                geocodeResult.formatted_address, geocodeResult.geometry.location);
-          };
-
-          if (geocodeCache.has(query)) {
-            handleResult(geocodeCache.get(query));
-            return;
-          }
-          const request = {address: query, bounds: locator.map.getBounds()};
-          geocoder.geocode(request, function(results, status) {
-            if (status === 'OK') {
-              if (results.length > 0) {
-                const result = results[0];
-                geocodeCache.set(query, result);
-                handleResult(result);
-              }
-            }
-          });
-        };
-
-        // Set up geocoding on the search input.
-        searchButtonEl.addEventListener('click', function() {
-          geocodeSearch(searchInputEl.value.trim());
-        });
-
-        // Initialize Autocomplete.
-        initializeSearchInputAutocomplete(
-            locator, searchInputEl, geocodeSearch, updateSearchLocation);
-      }
-
-      /** Add Autocomplete to the search input. */
-      function initializeSearchInputAutocomplete(
-          locator, searchInputEl, fallbackSearch, searchLocationUpdater) {
-        // Set up Autocomplete on the search input. Bias results to map viewport.
-        const autocomplete = new google.maps.places.Autocomplete(searchInputEl, {
-          types: ['geocode'],
-          fields: ['place_id', 'formatted_address', 'geometry.location']
-        });
-        autocomplete.bindTo('bounds', locator.map);
-        autocomplete.addListener('place_changed', function() {
-          const placeResult = autocomplete.getPlace();
-          if (!placeResult.geometry) {
-            // Hitting 'Enter' without selecting a suggestion will result in a
-            // placeResult with only the text input value as the 'name' field.
-            fallbackSearch(placeResult.name);
-            return;
-          }
-          searchLocationUpdater(
-              placeResult.formatted_address, placeResult.geometry.location);
-        });
-      }
-
-      /** Initialize Distance Matrix for the locator. */
-      function initializeDistanceMatrix(locator) {
-        const distanceMatrixService = new google.maps.DistanceMatrixService();
-
-        // Annotate travel times to the selected location using Distance Matrix.
-        locator.updateTravelTimes = function() {
-          if (!locator.searchLocation) return;
-
-          const units = (locator.userCountry === 'USA') ?
-              google.maps.UnitSystem.IMPERIAL :
-              google.maps.UnitSystem.METRIC;
-          const request = {
-            origins: [locator.searchLocation.location],
-            destinations: locator.locations.map(function(x) {
-              return x.coords;
-            }),
-            travelMode: google.maps.TravelMode.DRIVING,
-            unitSystem: units,
-          };
-          const callback = function(response, status) {
-            if (status === 'OK') {
-              const distances = response.rows[0].elements;
-              for (let i = 0; i < distances.length; i++) {
-                const distResult = distances[i];
-                let travelDistanceText, travelDistanceValue;
-                if (distResult.status === 'OK') {
-                  travelDistanceText = distResult.distance.text;
-                  travelDistanceValue = distResult.distance.value;
+            const request = {placeId: placeId, fields: missingFields};
+            let retryCount = 0;
+            const processResult = function(result, status) {
+              if (status !== google.maps.places.PlacesServiceStatus.OK) {
+                // If query limit has been reached, wait before making another call;
+                // Increase wait time of each successive retry with exponential backoff
+                // and terminate after five failed attempts.
+                if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT &&
+                    retryCount < 5) {
+                  const delay = (Math.pow(2, retryCount) + Math.random()) * 500;
+                  setTimeout(() => void detailsService.getDetails(request, processResult), delay);
+                  retryCount++;
                 }
-                const location = locator.locations[i];
-                location.travelDistanceText = travelDistanceText;
-                location.travelDistanceValue = travelDistanceValue;
+                return;
               }
 
-              // Re-render the results list, in case the ordering has changed.
-              locator.renderResultsList();
-            }
-          };
-          distanceMatrixService.getDistanceMatrix(request, callback);
-        };
-      }
-
-      /** Initialize Directions service for the locator. */
-      function initializeDirections(locator) {
-        const directionsCache = new Map();
-        const directionsService = new google.maps.DirectionsService();
-        const directionsRenderer = new google.maps.DirectionsRenderer({
-          suppressMarkers: true,
-        });
-
-        // Update directions displayed from the search location to
-        // the selected location on the map.
-        locator.updateDirections = function() {
-          if (!locator.searchLocation || (locator.selectedLocationIdx == null)) {
-            return;
-          }
-          const cacheKey = JSON.stringify(
-              [locator.searchLocation.location, locator.selectedLocationIdx]);
-          if (directionsCache.has(cacheKey)) {
-            const directions = directionsCache.get(cacheKey);
-            directionsRenderer.setMap(locator.map);
-            directionsRenderer.setDirections(directions);
-            return;
-          }
-          const request = {
-            origin: locator.searchLocation.location,
-            destination: locator.locations[locator.selectedLocationIdx].coords,
-            travelMode: google.maps.TravelMode.DRIVING
-          };
-          directionsService.route(request, function(response, status) {
-            if (status === 'OK') {
-              directionsRenderer.setMap(locator.map);
-              directionsRenderer.setDirections(response);
-              directionsCache.set(cacheKey, response);
-            }
-          });
-        };
-
-        locator.clearDirections = function() {
-          directionsRenderer.setMap(null);
-        };
-      }
-
-      /** Initialize Place Details service and UI for the locator. */
-      function initializeDetails(locator) {
-        const panelDetailsEl = document.getElementById('locations-panel-details');
-        const detailsService = new google.maps.places.PlacesService(locator.map);
-
-        const detailsTemplate = Handlebars.compile(
-            document.getElementById('locator-details-tmpl').innerHTML);
-
-        const renderDetails = function(context) {
-          panelDetailsEl.innerHTML = detailsTemplate(context);
-          panelDetailsEl.querySelector('.back-button')
-              .addEventListener('click', hideDetails);
-        };
-
-        const hideDetails = function() {
-          showElement(locator.panelListEl);
-          hideElement(panelDetailsEl);
-        };
-
-        locator.showDetails = function(locationIndex) {
-          const location = locator.locations[locationIndex];
-          const context = {location};
-
-          // Helper function to create a fixed-size array.
-          const initArray = function(arraySize) {
-            const array = [];
-            while (array.length < arraySize) {
-              array.push(0);
-            }
-            return array;
-          };
-
-          if (location.placeId) {
-            const request = {
-              placeId: location.placeId,
-              fields: [
-                'formatted_phone_number', 'website', 'opening_hours', 'url',
-                'utc_offset_minutes', 'price_level', 'rating', 'user_ratings_total'
-              ]
-            };
-            detailsService.getDetails(request, function(place, status) {
-              if (status == google.maps.places.PlacesServiceStatus.OK) {
-                if (place.opening_hours) {
-                  const daysHours =
-                      place.opening_hours.weekday_text.map(e => e.split(/\:\s+/))
-                          .map(e => ({'days': e[0].substr(0, 3), 'hours': e[1]}));
-
-                  for (let i = 1; i < daysHours.length; i++) {
-                    if (daysHours[i - 1].hours === daysHours[i].hours) {
-                      if (daysHours[i - 1].days.indexOf('-') !== -1) {
-                        daysHours[i - 1].days =
-                            daysHours[i - 1].days.replace(/\w+$/, daysHours[i].days);
-                      } else {
-                        daysHours[i - 1].days += ' - ' + daysHours[i].days;
-                      }
-                      daysHours.splice(i--, 1);
-                    }
+              // Basic details.
+              if (result.name) place.name = result.name;
+              if (result.geometry) place.coords = result.geometry.location;
+              if (result.formatted_address) place.address = result.formatted_address;
+              if (result.photos) {
+                place.photos = result.photos.map((photo) => ({
+                  urlSmall: photo.getUrl({maxWidth: 200, maxHeight: 200}),
+                  urlLarge: photo.getUrl({maxWidth: 1200, maxHeight: 1200}),
+                  attrs: photo.html_attributions,
+                })).slice(0, ND_NUM_PLACE_PHOTOS_MAX);
+              }
+              if (result.types) {
+                place.type = formatPlaceType(result.types[0]);
+                place.icon = ND_MARKER_ICONS_BY_TYPE['_default'];
+                for (let type of result.types) {
+                  if (type in ND_MARKER_ICONS_BY_TYPE) {
+                    place.type = formatPlaceType(type);
+                    place.icon = ND_MARKER_ICONS_BY_TYPE[type];
+                    break;
                   }
-                  place.openingHoursSummary = daysHours;
                 }
-                if (place.rating) {
-                  const starsOutOfTen = Math.round(2 * place.rating);
-                  const fullStars = Math.floor(starsOutOfTen / 2);
-                  const halfStars = fullStars !== starsOutOfTen / 2 ? 1 : 0;
-                  const emptyStars = 5 - fullStars - halfStars;
+              }
+              if (result.url) place.url = result.url;
 
-                  // Express stars as arrays to make iterating in Handlebars easy.
-                  place.fullStarIcons = initArray(fullStars);
-                  place.halfStarIcons = initArray(halfStars);
-                  place.emptyStarIcons = initArray(emptyStars);
-                }
-                if (place.price_level) {
-                  place.dollarSigns = initArray(place.price_level);
-                }
-                if (place.website) {
-                  const url = new URL(place.website);
-                  place.websiteDomain = url.hostname;
-                }
+              // Contact details.
+              if (result.website) {
+                place.website = result.website;
+                const url = new URL(place.website);
+                place.websiteDomain = url.hostname;
+              }
+              if (result.formatted_phone_number) place.phoneNumber = result.formatted_phone_number;
+              if (result.opening_hours) place.openingHours = parseDaysHours(result.opening_hours);
 
-                context.place = place;
-                renderDetails(context);
+              // Review details.
+              if (result.rating) {
+                place.rating = result.rating;
+                addStarIcons(place);
+              }
+              if (result.user_ratings_total) place.numReviews = result.user_ratings_total;
+              if (result.price_level) {
+                place.priceLevel = result.price_level;
+                place.dollarSigns = initArray(result.price_level);
+              }
+              if (result.reviews) {
+                place.reviews = result.reviews;
+                for (let review of place.reviews) {
+                  addStarIcons(review);
+                }
+              }
+
+              for (let field of missingFields) {
+                place.fetchedFields.add(field);
+              }
+              callback(place);
+            };
+
+            // Use result from Place Autocomplete if available.
+            if (widget.placeIdsToAutocompleteResults) {
+              const autoCompleteResult = widget.placeIdsToAutocompleteResults.get(placeId);
+              if (autoCompleteResult) {
+                processResult(autoCompleteResult, google.maps.places.PlacesServiceStatus.OK);
+                return;
+              }
+            }
+            detailsService.getDetails(request, processResult);
+          };
+        }
+
+        /** Initializes the side panel that holds curated POI results. */
+        function initializeSidePanel() {
+          const placesPanelEl = widgetEl.querySelector('.places-panel');
+          const detailsPanelEl = widgetEl.querySelector('.details-panel');
+          const placeResultsEl = widgetEl.querySelector('.place-results-list');
+          const showMoreButtonEl = widgetEl.querySelector('.show-more-button');
+          const photoModalEl = widgetEl.querySelector('.photo-modal');
+          const detailsTemplate = Handlebars.compile(
+              document.getElementById('nd-place-details-tmpl').innerHTML);
+          const resultsTemplate = Handlebars.compile(
+              document.getElementById('nd-place-results-tmpl').innerHTML);
+
+          // Show specified POI photo in a modal.
+          const showPhotoModal = function(photo, placeName) {
+            const prevFocusEl = document.activeElement;
+            const imgEl = photoModalEl.querySelector('img');
+            imgEl.src = photo.urlLarge;
+            const backButtonEl = photoModalEl.querySelector('.back-button');
+            backButtonEl.addEventListener('click', () => {
+              hideElement(photoModalEl, prevFocusEl);
+              imgEl.src = '';
+            });
+            photoModalEl.querySelector('.photo-place').innerHTML = placeName;
+            photoModalEl.querySelector('.photo-attrs span').innerHTML = photo.attrs;
+            const attributionEl = photoModalEl.querySelector('.photo-attrs a');
+            if (attributionEl) attributionEl.setAttribute('target', '_blank');
+            photoModalEl.addEventListener('click', (e) => {
+              if (e.target === photoModalEl) {
+                hideElement(photoModalEl, prevFocusEl);
+                imgEl.src = '';
               }
             });
-          }
-          renderDetails(context);
-          hideElement(locator.panelListEl);
-          showElement(panelDetailsEl);
-        };
+            showElement(photoModalEl, backButtonEl);
+          };
+
+          // Select a place by id and show details.
+          let selectedPlaceId;
+          widget.selectPlaceById = function(placeId, panToMarker) {
+            if (selectedPlaceId === placeId) return;
+            selectedPlaceId = placeId;
+            const prevFocusEl = document.activeElement;
+
+            const showDetailsPanel = function(place) {
+              detailsPanelEl.innerHTML = detailsTemplate(place);
+              const backButtonEl = detailsPanelEl.querySelector('.back-button');
+              backButtonEl.addEventListener('click', () => {
+                hideElement(detailsPanelEl, prevFocusEl);
+                selectedPlaceId = undefined;
+                widget.selectedPlaceMarker.setMap(null);
+              });
+              detailsPanelEl.querySelectorAll('.photo').forEach((photoEl, i) => {
+                photoEl.addEventListener('click', () => {
+                  showPhotoModal(place.photos[i], place.name);
+                });
+              });
+              showElement(detailsPanelEl, backButtonEl);
+              detailsPanelEl.scrollTop = 0;
+            };
+
+            const processResult = function(place) {
+              if (place.marker) {
+                widget.selectedPlaceMarker.setMap(null);
+              } else {
+                widget.selectedPlaceMarker.setPosition(place.coords);
+                widget.selectedPlaceMarker.setMap(widget.map);
+              }
+              if (panToMarker) {
+                widget.map.panTo(place.coords);
+              }
+              showDetailsPanel(place);
+            };
+
+            widget.fetchPlaceDetails(placeId, [
+              'name', 'types', 'geometry.location', 'formatted_address', 'photo', 'url',
+              'website', 'formatted_phone_number', 'opening_hours',
+              'rating', 'user_ratings_total', 'price_level', 'review',
+            ], processResult);
+          };
+
+          // Render the specified place objects and append them to the POI list.
+          const renderPlaceResults = function(places, startIndex) {
+            placeResultsEl.insertAdjacentHTML('beforeend', resultsTemplate({places: places}));
+            placeResultsEl.querySelectorAll('.place-result').forEach((resultEl, i) => {
+              const place = places[i - startIndex];
+              if (!place) return;
+              // Clicking anywhere on the item selects the place.
+              // Additionally, create a button element to make this behavior
+              // accessible under tab navigation.
+              resultEl.addEventListener('click', () => {
+                widget.selectPlaceById(place.placeId, /* panToMarker= */ true);
+              });
+              resultEl.querySelector('.name').addEventListener('click', (e) => {
+                widget.selectPlaceById(place.placeId, /* panToMarker= */ true);
+                e.stopPropagation();
+              });
+              resultEl.querySelector('.photo').addEventListener('click', (e) => {
+                showPhotoModal(place.photos[0], place.name);
+                e.stopPropagation();
+              });
+              widget.addPlaceMarker(place);
+            });
+          };
+
+          // Index of next Place object to show in the POI list.
+          let nextPlaceIndex = 0;
+
+          // Fetch and show basic info for the next N places.
+          const showNextPlaces = function(n) {
+            const nextPlaces = widget.places.slice(nextPlaceIndex, nextPlaceIndex + n);
+            if (nextPlaces.length < 1) {
+              hideElement(showMoreButtonEl);
+              return;
+            }
+            showMoreButtonEl.disabled = true;
+            // Keep track of the number of Places calls that have not finished.
+            let count = nextPlaces.length;
+            for (let place of nextPlaces) {
+              const processResult = function(place) {
+                count--;
+                if (count > 0) return;
+                renderPlaceResults(nextPlaces, nextPlaceIndex);
+                nextPlaceIndex += n;
+                widget.updateBounds(widget.places.slice(0, nextPlaceIndex));
+                const hasMorePlacesToShow = nextPlaceIndex < widget.places.length;
+                if (hasMorePlacesToShow || hasHiddenContent(placesPanelEl)) {
+                  showElement(showMoreButtonEl);
+                  showMoreButtonEl.disabled = false;
+                } else {
+                  hideElement(showMoreButtonEl);
+                }
+              };
+              widget.fetchPlaceDetails(place.placeId, [
+                'name', 'types', 'geometry.location',
+                'photo',
+                'rating', 'user_ratings_total', 'price_level',
+              ], processResult);
+            }
+          };
+          showNextPlaces(ND_NUM_PLACES_INITIAL);
+
+          showMoreButtonEl.addEventListener('click', () => {
+            placesPanelEl.classList.remove('no-scroll');
+            showMoreButtonEl.classList.remove('sticky');
+            showNextPlaces(ND_NUM_PLACES_SHOW_MORE);
+          });
+        }
+
+        /** Initializes Search Input for the widget. */
+        function initializeSearchInput() {
+          const searchInputEl = widgetEl.querySelector('.place-search-input');
+          widget.placeIdsToAutocompleteResults = new Map();
+
+          // Set up Autocomplete on the search input.
+          const autocomplete = new google.maps.places.Autocomplete(searchInputEl, {
+            types: ['establishment'],
+            fields: [
+              'place_id', 'name', 'types', 'geometry.location', 'formatted_address', 'photo', 'url',
+              'website', 'formatted_phone_number', 'opening_hours',
+              'rating', 'user_ratings_total', 'price_level', 'review',
+            ],
+            bounds: widget.mapBounds,
+            strictBounds: true,
+          });
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            widget.placeIdsToAutocompleteResults.set(place.place_id, place);
+            widget.selectPlaceById(place.place_id, /* panToMarker= */ true);
+            searchInputEl.value = '';
+          });
+        }
       }
     </script>
     <script>
       const CONFIGURATION = {
-        "locations": [
-          {"title":"San Rafael","address1":"San Rafael","address2":"Mendoza, Argentina","coords":{"lat":-34.61317475709005,"lng":-68.33987222712251},"placeId":"ChIJpwY9sf0HeZYRnTBz1JYn--A"}
+        "capabilities": {"search":true,"distances":false,"directions":false,"contacts":true,"atmospheres":true,"thumbnails":true},
+        "pois": [
+          {"placeId": "ChIJM4lBwREIeZYRjueR9d5aFvw"},
+          {"placeId": "ChIJ0dBO4fwHeZYRtKWQEqhYuSU"},
+          {"placeId": "ChIJK4Yh-AUIeZYRlxo8rN2W1x0"},
+          {"placeId": "ChIJK2Ee1xMIeZYRCRxb-R48DpQ"},
+          {"placeId": "ChIJ86vYRPaneZYRLzpNVkRptjY"},
+          {"placeId": "ChIJYXbO7RMIeZYRjlotIY2tzHQ"},
+          {"placeId": "ChIJNTRTOvwHeZYREysl-3QzIJg"},
+          {"placeId": "ChIJKRjZSPsHeZYRDajqbQMA8q0"},
+          {"placeId": "ChIJqbhyqf4HeZYRCnxoN8sB7Go"},
+          {"placeId": "ChIJgUSljAcIeZYRCl9AYschjrQ"},
+          {"placeId": "ChIJSe3elB2oeZYRkyuBTo1lfEQ"},
+          {"placeId": "ChIJI-scqgcIeZYRvSf92mudvJg"},
+          {"placeId": "ChIJxYrUXPwHeZYRaxzFjO4nERw"},
+          {"placeId": "ChIJc0tKm_0HeZYRj2FTHAZWaLk"},
+          {"placeId": "ChIJraqq__UIeZYR0xo1gkK-mtA"},
+          {"placeId": "ChIJPQnIHwYIeZYRB97D8vXXKQw"},
+          {"placeId": "ChIJlZHh0QAIeZYRaaIpCaNYyNA"},
+          {"placeId": "ChIJdxAywwcIeZYRzgZhH1DdcVM"},
+          {"placeId": "ChIJ1Y-fT6sJeZYRtfWhe4qTd94"},
+          {"placeId": "ChIJzZDAFPwHeZYRmH6MkxryOQg"},
+          {"placeId": "ChIJtfHroP4HeZYRdUbQ66d5WOA"},
+          {"placeId": "ChIJo29KaB4IeZYRMp8AJdbCKTs"},
+          {"placeId": "ChIJmYTyfvcHeZYRd-EYMDa5T5E"},
+          {"placeId": "ChIJT6wzvv4HeZYRAk-UnIePFdA"}
         ],
-        "mapOptions": {"center":{"lat":38.0,"lng":-100.0},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapId":""},
-        "mapsApiKey": "AIzaSyDZvCXk4mAPM0RhxIMIRrIqGtz0yGJWiwQ",
-        "capabilities": {"input":true,"autocomplete":true,"directions":true,"distanceMatrix":true,"details":true,"actions":false}
+        "mapRadius": 5000,
+        "mapOptions": {"center":{"lat":-34.6128922,"lng":-68.3390622},"fullscreenControl":true,"mapTypeControl":true,"streetViewControl":false,"zoom":16,"zoomControl":true,"maxZoom":20,"mapId":""},
+        "mapsApiKey": "AIzaSyCuvN6Z4Jp71vmM7iysU-Auz_n-a_TNfL0"
       };
 
       function initMap() {
-        new LocatorPlus(CONFIGURATION);
+        new NeighborhoodDiscovery(CONFIGURATION);
       }
     </script>
-    <script id="locator-result-items-tmpl" type="text/x-handlebars-template">
-      {{#each locations}}
-        <li class="location-result" data-location-index="{{index}}">
-          <button class="select-location">
-            <h2 class="name">{{title}}</h2>
-          </button>
-          <div class="address">{{address1}}<br>{{address2}}</div>
-          <div class="options">
-            <div class="option-container">
-              <button class="details-button option">
-                <span>View details</span>
-              </button>
+    <script id="nd-place-results-tmpl" type="text/x-handlebars-template">
+      {{#each places}}
+        <li class="place-result">
+          <div class="text">
+            <button class="name">{{name}}</button>
+            <div class="info">
+              {{#if rating}}
+                <span>{{rating}}</span>
+                <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star/v15/24px.svg" alt="rating" class="star-icon"/>
+              {{/if}}
+              {{#if numReviews}}
+                <span>&nbsp;({{numReviews}})</span>
+              {{/if}}
+              {{#if priceLevel}}
+                &#183;&nbsp;<span>{{#each dollarSigns}}${{/each}}&nbsp;</span>
+              {{/if}}
             </div>
+            <div class="info">{{type}}</div>
           </div>
-          {{#if travelDistanceText}}
-            <div class="distance">{{travelDistanceText}}</div>
-          {{/if}}
-          <a class="directions-button" href="" target="_blank" title="Get directions to this location on Google Maps">
-            <svg width="34" height="34" viewBox="0 0 34 34"
-                  fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17.5867 9.24375L17.9403 8.8902V8.8902L17.5867 9.24375ZM16.4117 9.24375L16.7653 9.59731L16.7675 9.59502L16.4117 9.24375ZM8.91172 16.7437L8.55817 16.3902L8.91172 16.7437ZM8.91172 17.9229L8.55817 18.2765L8.55826 18.2766L8.91172 17.9229ZM16.4117 25.4187H16.9117V25.2116L16.7652 25.0651L16.4117 25.4187ZM16.4117 25.4229H15.9117V25.63L16.0582 25.7765L16.4117 25.4229ZM25.0909 17.9229L25.4444 18.2765L25.4467 18.2742L25.0909 17.9229ZM25.4403 16.3902L17.9403 8.8902L17.2332 9.5973L24.7332 17.0973L25.4403 16.3902ZM17.9403 8.8902C17.4213 8.3712 16.5737 8.3679 16.0559 8.89248L16.7675 9.59502C16.8914 9.4696 17.1022 9.4663 17.2332 9.5973L17.9403 8.8902ZM16.0582 8.8902L8.55817 16.3902L9.26527 17.0973L16.7653 9.5973L16.0582 8.8902ZM8.55817 16.3902C8.0379 16.9105 8.0379 17.7562 8.55817 18.2765L9.26527 17.5694C9.13553 17.4396 9.13553 17.227 9.26527 17.0973L8.55817 16.3902ZM8.55826 18.2766L16.0583 25.7724L16.7652 25.0651L9.26517 17.5693L8.55826 18.2766ZM15.9117 25.4187V25.4229H16.9117V25.4187H15.9117ZM16.0582 25.7765C16.5784 26.2967 17.4242 26.2967 17.9444 25.7765L17.2373 25.0694C17.1076 25.1991 16.895 25.1991 16.7653 25.0694L16.0582 25.7765ZM17.9444 25.7765L25.4444 18.2765L24.7373 17.5694L17.2373 25.0694L17.9444 25.7765ZM25.4467 18.2742C25.9631 17.7512 25.9663 16.9096 25.438 16.3879L24.7354 17.0995C24.8655 17.2279 24.8687 17.4363 24.7351 17.5716L25.4467 18.2742Z" fill="#1967d2"/>
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M19 19.8333V17.75H15.6667V20.25H14V16.9167C14 16.4542 14.3708 16.0833 14.8333 16.0833H19V14L21.9167 16.9167L19 19.8333Z" fill="#1967d2"/>
-              <circle class="directions-button-background" cx="17" cy="17" r="16.5" stroke="#1967d2"/>
-            </svg>
-          </a>
+          <button class="photo" style="background-image:url({{photos.0.urlSmall}})" aria-label="show photo in viewer"></button>
         </li>
       {{/each}}
     </script>
-    <script id="locator-details-tmpl" type="text/x-handlebars-template">
-      <button class="back-button">
-        <img class="icon" src="https://fonts.gstatic.com/s/i/googlematerialicons/arrow_back/v11/24px.svg" alt=""/>
-        Back
-      </button>
+    <script id="nd-place-details-tmpl" type="text/x-handlebars-template">
+      <div class="navbar">
+        <button class="back-button">
+          <img class="icon" src="https://fonts.gstatic.com/s/i/googlematerialicons/arrow_back/v11/24px.svg" alt="back"/>
+          Back
+        </button>
+      </div>
       <header>
-        <div class="banner">
-          <svg width="23" height="32" viewBox="0 0 23 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M22.9976 11.5003C22.9976 13.2137 22.7083 14.9123 21.8025 16.7056C18.6321 22.9832 12.7449 24.3314 12.2758 30.7085C12.2448 31.1294 11.9286 31.4744 11.4973 31.4744C11.0689 31.4744 10.7527 31.1294 10.7218 30.7085C10.2527 24.3314 4.3655 22.9832 1.19504 16.7056C0.289306 14.9123 0 13.2137 0 11.5003C0 5.13275 5.14557 0 11.5003 0C17.852 0 22.9976 5.13275 22.9976 11.5003Z" fill="#4285F4"/>
-            <path fill-rule="evenodd" clip-rule="evenodd" transform="translate(5.5,5.5)" d="M6 8.84091L9.708 11L8.724 6.92961L12 4.19158L7.6856 3.83881L6 0L4.3144 3.83881L0 4.19158L3.276 6.92961L2.292 11L6 8.84091Z" fill="#FBE15C"/>
-          </svg>
+        <h2>{{name}}</h2>
+        <div class="info">
+          {{#if rating}}
+            <span class="star-rating-numeric">{{rating}}</span>
+            <span>
+              {{#each fullStarIcons}}
+                <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star/v15/24px.svg" alt="full star" class="star-icon"/>
+              {{/each}}
+              {{#each halfStarIcons}}
+                <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_half/v17/24px.svg" alt="half star" class="star-icon"/>
+              {{/each}}
+              {{#each emptyStarIcons}}
+                <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_outline/v9/24px.svg" alt="empty star" class="star-icon"/>
+              {{/each}}
+            </span>
+          {{/if}}
+          {{#if numReviews}}
+            <a href="{{url}}" target="_blank">{{numReviews}} reviews</a>
+          {{else}}
+            <a href="{{url}}" target="_blank">See on Google Maps</a>
+          {{/if}}
+          {{#if priceLevel}}
+            &#183;
+            <span class="price-dollars">
+              {{#each dollarSigns}}${{/each}}
+            </span>
+          {{/if}}
         </div>
-        <h2>{{location.title}}</h2>
+        {{#if type}}
+          <div class="info">{{type}}</div>
+        {{/if}}
       </header>
-      {{#if location.travelDistanceText}}
-        <div class="distance">{{location.travelDistanceText}} away</div>
+      <div class="section">
+        {{#if address}}
+          <div class="contact">
+            <img src="https://fonts.gstatic.com/s/i/googlematerialicons/place/v10/24px.svg" alt="Address" class="icon"/>
+            <div class="text">
+              {{address}}
+            </div>
+          </div>
+        {{/if}}
+        {{#if website}}
+          <div class="contact">
+            <img src="https://fonts.gstatic.com/s/i/googlematerialicons/public/v10/24px.svg" alt="Website" class="icon"/>
+            <div class="text">
+              <a href="{{website}}" target="_blank">{{websiteDomain}}</a>
+            </div>
+          </div>
+        {{/if}}
+        {{#if phoneNumber}}
+          <div class="contact">
+            <img src="https://fonts.gstatic.com/s/i/googlematerialicons/phone/v10/24px.svg" alt="Phone number" class="icon"/>
+            <div class="text">
+              {{phoneNumber}}
+            </div>
+          </div>
+        {{/if}}
+        {{#if openingHours}}
+          <div class="contact">
+            <img src="https://fonts.gstatic.com/s/i/googlematerialicons/schedule/v12/24px.svg" alt="Opening hours" class="icon"/>
+            <div class="text">
+              {{#each openingHours}}
+                <div>
+                  <span class="weekday">{{days}}</span>
+                  <span class="hours">{{hours}}</span>
+                </div>
+              {{/each}}
+            </div>
+          </div>
+        {{/if}}
+      </div>
+      {{#if photos}}
+        <div class="photos section">
+          {{#each photos}}
+            <button class="photo" style="background-image:url({{urlSmall}})" aria-label="show photo in viewer"></button>
+          {{/each}}
+        </div>
       {{/if}}
-      <div class="address">
-        {{location.address1}}<br>
-        {{location.address2}}
-      </div>
-      <div class="atmosphere">
-        {{#if place.rating}}
-          <span class="star-rating-numeric">{{place.rating}}</span>
-          <span>
-            {{#each place.fullStarIcons}}
-              <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star/v15/24px.svg"
-                   alt="" class="star-icon"/>
-            {{/each}}
-            {{#each place.halfStarIcons}}
-              <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_half/v17/24px.svg"
-                   alt="" class="star-icon"/>
-            {{/each}}
-            {{#each place.emptyStarIcons}}
-              <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_outline/v9/24px.svg"
-                   alt="" class="star-icon"/>
-            {{/each}}
-          </span>
-        {{/if}}
-        {{#if place.user_ratings_total}}
-          <a href="{{place.url}}" target="_blank">{{place.user_ratings_total}} reviews</a>
-        {{else}}
-          <a href="{{place.url}}" target="_blank">See on Google Maps</a>
-        {{/if}}
-        {{#if place.price_level}}
-          &bull;
-          <span class="price-dollars">
-            {{#each place.dollarSigns}}${{/each}}
-          </span>
-        {{/if}}
-      </div>
-      <hr/>
-      {{#if place.opening_hours}}
-        <div class="hours contact">
-          <img src="https://fonts.gstatic.com/s/i/googlematerialicons/schedule/v12/24px.svg"
-               alt="Opening hours" class="icon"/>
-          <div class="right">
-            {{#each place.openingHoursSummary}}
-              <div>
-                <span class="weekday">{{days}}</span>
-                <span class="hours">{{hours}}</span>
+      {{#if reviews}}
+        <div class="reviews section">
+          <p class="attribution">Reviews by Google users</p>
+          {{#each reviews}}
+            <div class="review">
+              <a class="reviewer-identity" href="{{author_url}}" target="_blank">
+                <div class="reviewer-avatar" style="background-image:url({{profile_photo_url}})"></div>
+                <div class="reviewer-name">{{author_name}}</div>
+              </a>
+              <div class="rating info">
+                <span>
+                  {{#each fullStarIcons}}
+                    <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star/v15/24px.svg" alt="full star" class="star-icon"/>
+                  {{/each}}
+                  {{#each halfStarIcons}}
+                    <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_half/v17/24px.svg" alt="half star" class="star-icon"/>
+                  {{/each}}
+                  {{#each emptyStarIcons}}
+                    <img src="https://fonts.gstatic.com/s/i/googlematerialicons/star_outline/v9/24px.svg" alt="empty star" class="star-icon"/>
+                  {{/each}}
+                </span>
+                <span class="review-time">{{relative_time_description}}</span>
               </div>
-            {{/each}}
-          </div>
+              <div class="info">{{text}}</div>
+            </div>
+          {{/each}}
         </div>
       {{/if}}
-      {{#if place.website}}
-        <div class="website contact">
-          <img src="https://fonts.gstatic.com/s/i/googlematerialicons/public/v10/24px.svg"
-               alt="Website" class="icon"/>
-          <div class="right">
-            <a href="{{place.website}}" target="_blank">{{place.websiteDomain}}</a>
-          </div>
+      {{#if html_attributions}}
+        <div class="section">
+          {{#each html_attributions}}
+            <p class="attribution">{{{this}}}</p>
+          {{/each}}
         </div>
-      {{/if}}
-      {{#if place.formatted_phone_number}}
-        <div class="phone contact">
-          <img src="https://fonts.gstatic.com/s/i/googlematerialicons/phone/v10/24px.svg"
-               alt="Phone number" class="icon"/>
-          <div class="right">
-            {{place.formatted_phone_number}}
-          </div>
-        </div>
-      {{/if}}
-      {{#if place.html_attributions}}
-        {{#each place.html_attributions}}
-          <p class="attribution">{{{this}}}</p>
-        {{/each}}
       {{/if}}
     </script>
   </head>
   <body>
-    <div id="map-container">
-      <div id="locations-panel">
-        <div id="locations-panel-list">
-          <header>
-            <h1 class="search-title">
-              <img src="https://fonts.gstatic.com/s/i/googlematerialicons/place/v15/24px.svg"/>
-              Find a location near you
-            </h1>
-            <div class="search-input">
-              <input id="location-search-input" placeholder="Enter your address or zip code">
-              <div id="search-overlay-search" class="search-input-overlay search">
-                <button id="location-search-button">
-                  <img class="icon" src="https://fonts.gstatic.com/s/i/googlematerialicons/search/v11/24px.svg" alt="Search"/>
-                </button>
-              </div>
-            </div>
-          </header>
-          <div class="section-name" id="location-results-section-name">
-            All locations
+    <div class="neighborhood-discovery">
+      <div class="places-panel panel no-scroll">
+        <header class="navbar">
+          <div class="search-input">
+            <input class="place-search-input" placeholder="Search nearby places">
+            <button class="place-search-button">
+              <img src="https://fonts.gstatic.com/s/i/googlematerialicons/search/v11/24px.svg" alt="search"/>
+            </button>
           </div>
-          <div class="results">
-            <ul id="location-results-list"></ul>
+        </header>
+        <div class="results">
+          <ul class="place-results-list"></ul>
+        </div>
+        <button class="show-more-button sticky">
+          <span>Show More</span>
+          <img class="right" src="https://fonts.gstatic.com/s/i/googlematerialicons/expand_more/v11/24px.svg" alt="expand"/>
+        </button>
+      </div>
+      <div class="details-panel panel"></div>
+      <div class="map"></div>
+      <div class="photo-modal">
+        <img alt="place photo"/>
+        <div>
+          <button class="back-button">
+            <img class="icon" src="https://fonts.gstatic.com/s/i/googlematerialicons/arrow_back/v11/24px.svg" alt="back"/>
+          </button>
+          <div class="photo-text">
+            <div class="photo-place"></div>
+            <div class="photo-attrs">Photo by <span></span></div>
           </div>
         </div>
-        <div id="locations-panel-details"></div>
       </div>
-      <div id="gmp-map"></div>
+      <svg class="marker-pin" xmlns="http://www.w3.org/2000/svg" width="26" height="38" fill="none">
+        <path d="M13 0C5.817 0 0 5.93 0 13.267c0 7.862 5.59 10.81 9.555 17.624C12.09 35.248 11.342 38 13 38c1.723 0 .975-2.817 3.445-7.043C20.085 24.503 26 21.162 26 13.267 26 5.93 20.183 0 13 0Z"/>
+      </svg>
     </div>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDZvCXk4mAPM0RhxIMIRrIqGtz0yGJWiwQ&callback=initMap&libraries=places,geometry&solution_channel=GMP_QB_locatorplus_v6_cABCDE" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCuvN6Z4Jp71vmM7iysU-Auz_n-a_TNfL0&callback=initMap&libraries=places,geometry&solution_channel=GMP_QB_neighborhooddiscovery_v2_cADEF" async defer></script>
   </body>
 </html>
