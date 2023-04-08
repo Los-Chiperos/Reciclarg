@@ -26,7 +26,7 @@ steps:
       password: ${{ env.PASSWORD }}
       script: |
         cd /var/www/html
-        git clone https://github.com/your-username/your-repo.git
+        git clone https://github.com/Los-Chiperos/Reciclarg.git
         cd your-repo
         npm install
         sudo systemctl restart nginx
