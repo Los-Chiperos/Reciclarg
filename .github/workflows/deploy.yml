@@ -23,8 +23,7 @@ env:
   USERNAME: nicolas_zelarayan
   PASSWORD: ${{ secrets.SERVER_PASSWORD }}
   
-
-      script: |
+  script: |
         cd /var/www/html
         git clone https://github.com/Los-Chiperos/Reciclarg.git
         cd Reciclarg
