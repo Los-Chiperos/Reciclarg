@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     
 env:
-  PROJECT_ID: your-project-id
-  CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+  PROJECT_ID:  helpful-kit-383103
+  CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
   
 env:
   HOST: 34.70.178.216
-  USERNAME: instance-1
+  USERNAME: nicolas_zelarayan
   PASSWORD: ${{ secrets.SERVER_PASSWORD }}
   
 steps:
