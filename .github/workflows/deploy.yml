@@ -14,7 +14,12 @@ jobs:
       with:
         project_id: ${{ env.PROJECT_ID }}
         credentials: ${{ env.CREDENTIALS }}
-
+        script: |
+          cd /var/www/html
+          git clone https://github.com/Los-Chiperos/Reciclarg.git
+          cd Reciclarg
+          npm install
+          sudo systemctl restart nginx
 env:
   PROJECT_ID:  helpful-kit-383103
   CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
@@ -22,9 +27,4 @@ env:
   USERNAME: nicolas_zelarayan
   PASSWORD: ${{ secrets.SERVER_PASSWORD }}
   
-  script: |
-        cd /var/www/html
-        git clone https://github.com/Los-Chiperos/Reciclarg.git
-        cd Reciclarg
-        npm install
-        sudo systemctl restart nginx
+
