@@ -8,13 +8,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     
-env:
-  PROJECT_ID:  helpful-kit-383103
-  CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
-  HOST: reciclarg.cloud
-  USERNAME: nicolas_zelarayan
-  PASSWORD: ${{ secrets.SERVER_PASSWORD }}
-  
 steps:
   - name: Connect to server
     uses: appleboy/ssh-action@master
@@ -22,6 +15,15 @@ steps:
       host: ${{ env.HOST }}
       username: ${{ env.USERNAME }}
       password: ${{ env.PASSWORD }}
+    
+env:
+  PROJECT_ID:  helpful-kit-383103
+  CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
+  HOST: reciclarg.cloud
+  USERNAME: nicolas_zelarayan
+  PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+  
+
       script: |
         cd /var/www/html
         git clone https://github.com/Los-Chiperos/Reciclarg.git
