@@ -11,8 +11,6 @@ jobs:
 env:
   PROJECT_ID:  helpful-kit-383103
   CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
-  
-env:
   HOST: reciclarg.cloud
   USERNAME: nicolas_zelarayan
   PASSWORD: ${{ secrets.SERVER_PASSWORD }}
@@ -27,6 +25,6 @@ steps:
       script: |
         cd /var/www/html
         git clone https://github.com/Los-Chiperos/Reciclarg.git
-        cd your-repo
+        cd Reciclarg
         npm install
         sudo systemctl restart nginx
