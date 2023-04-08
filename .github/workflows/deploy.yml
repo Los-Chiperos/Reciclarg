@@ -11,8 +11,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Configure gcloud CLI
-      uses: google-github-actions/setup-gcloud@master
       with:
         project_id: ${{ env.PROJECT_ID }}
         credentials: ${{ env.CREDENTIALS }}
