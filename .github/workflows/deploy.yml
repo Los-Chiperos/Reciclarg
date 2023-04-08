@@ -13,7 +13,7 @@ env:
   CREDENTIALS: ${{ secrets.GCP_CREDENCIALES }}
   
 env:
-  HOST: 34.70.178.216
+  HOST: reciclarg.cloud
   USERNAME: nicolas_zelarayan
   PASSWORD: ${{ secrets.SERVER_PASSWORD }}
   
