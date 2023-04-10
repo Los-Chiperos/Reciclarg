@@ -1,1 +1,19 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'compute'
+  - 'ssh'
+  - 'frontend' # Ingresa el nombre de tu instancia
+  - '--zone=us-central1-c' # Reemplaza "us-central1-c" con la zona de tu instancia
+  - '--'
+  - 'cd'
+  - '/var/www/html/Reciclarg' # Reemplaza "/var/www/html" con la ruta a la carpeta donde están los archivos
+  - '&&'
+  - 'git'
+  - 'pull'
+  - '&&'
+  - 'sudo'
+  - 'systemctl'
+  - 'restart'
+  - 'nginx'
 
