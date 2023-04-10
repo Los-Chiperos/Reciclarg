@@ -5,7 +5,7 @@
 
 # Metodología: 
 
-## *Clonar el repositorio : git clone https://github.com/Los-Chiperos/Reciclarg-Backend.git*
+## *Clonar el repositorio : git clone https://github.com/Los-Chiperos/Reciclarg.git*
 
 ## *Crear una rama con el nombre del integrante del grupo*
 
