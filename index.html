@@ -12,19 +12,7 @@
           zoom: 13
         });
         map.setCenter(myLatLng); // Centrar el mapa en la ubicación inicial
-
-        var button = document.getElementById('myButton');
-        button.addEventListener('click', function() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-              var pos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              };
-              map.setCenter(pos); // Centrar el mapa en la ubicación actual
-
-              // Definir coordenadas y títulos de los marcadores
-              var markersData = [
+        var markersData = [
                 {lat: -34.617438, lng: -68.321647, title: 'Punto ECO #1'},
                 {lat: -34.615361, lng: -68.337249, title: 'Punto ECO #2'},
                 {lat: -34.619537, lng: -68.332456, title: 'Punto ECO #3'},
@@ -50,6 +38,18 @@
                 });
                 markers.push(marker);
               }
+        var button = document.getElementById('myButton');
+        button.addEventListener('click', function() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+              var pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              map.setCenter(pos); // Centrar el mapa en la ubicación actual
+
+              // Definir coordenadas y títulos de los marcadores
+             
 
               // Encontrar el marcador más cercano
               var distances = markers.map(function(marker) {
