@@ -1,88 +1,83 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Reciclarg </title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <title>Mapa con ubicación actual y marcadores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtXaHO0zcrYOwz0QIA66C3iQaxEniZbEs&callback=initMap&libraries=geometry" async defer></script>
     <script>
-
       function initMap() {
-        const map = new google.maps.Map(document.getElementById("map"), {
-          zoom: 13,
-          center: { lat: -34.61772, lng: -68.33007 },
+        var myLatLng = {lat: -34.61772, lng: -68.33007}; // Coordenadas de la ubicación inicial
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: myLatLng,
+          zoom: 13
         });
+        map.setCenter(myLatLng); // Centrar el mapa en la ubicación inicial
 
-        setMarkers(map);
+        var button = document.getElementById('myButton');
+        button.addEventListener('click', function() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+              var pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              map.setCenter(pos); // Centrar el mapa en la ubicación actual
+
+              // Definir coordenadas y títulos de los marcadores
+              var markersData = [
+                {lat: -34.617438, lng: -68.321647, title: 'Punto ECO #1'},
+                {lat: -34.615361, lng: -68.337249, title: 'Punto ECO #2'},
+                {lat: -34.619537, lng: -68.332456, title: 'Punto ECO #3'},
+                {lat: -34.621273, lng: -68.344097, title: 'Punto ECO #4'},
+                {lat: -34.598896, lng: -68.324633, title: 'Punto ECO #5'},
+                {lat: -34.620728, lng: -68.311871, title: 'Punto ECO #6'},
+                {lat: -34.620015, lng: -68.316056, title: 'Punto ECO #7'},
+                {lat: -34.618579, lng: -68.312804, title: 'Punto ECO #8'},
+                {lat: -34.609064, lng: -68.317628, title: 'Punto ECO #9'},
+                {lat: -34.594653, lng: -68.343803, title: 'Punto ECO #10'}
+              ];
+              const image = {
+                url: "http://34.70.178.216/papelera-de-reciclaje.png"
+              }
+              // Agregar los marcadores
+              var markers = [];
+              for (var i = 0; i < markersData.length; i++) {
+                var marker = new google.maps.Marker({
+                  icon: image,
+                  position: markersData[i],
+                  map: map,
+                  title: markersData[i].title
+                });
+                markers.push(marker);
+              }
+
+              // Encontrar el marcador más cercano
+              var distances = markers.map(function(marker) {
+                return {
+                  marker: marker,
+                  distance: google.maps.geometry.spherical.computeDistanceBetween(pos, marker.getPosition())
+                };
+              });
+              distances.sort(function(a, b) {
+                return a.distance - b.distance;
+              });
+              var closestMarker = distances[0].marker;
+
+              // Mostrar información del marcador más cercano
+              var infoWindow = new google.maps.InfoWindow({
+                content: '<div>Punto de reciclaje mas cercano es: ' + closestMarker.getTitle() + '</div>'
+              });
+              infoWindow.open(map, closestMarker);
+            });
+          } else {
+            alert('Tu navegador no soporta la geolocalización.');
+          }
+        });
       }
-       // Data for the markers consisting of a name, a LatLng and a zIndex for the
-      // order in which these markers should display on top of each other.
-const contenedores = [  ["Contenedor 1", -34.615361, -68.337249, 4],
-  ["Contenedor 2", -34.617438, -68.321647, 5],
-  ["Contenedor 3", -34.619537, -68.332456, 3],
-  ["Contenedor 4", -34.621273, -68.344097, 2],
-  ["Contenedor 5", -34.598896, -68.324633, 1],
-  ["Contenedor 6", -34.620728, -68.311871, 6],
-  ["Contenedor 7", -34.620015, -68.316056, 7],
-  ["Contenedor 8", -34.618579, -68.312804, 8],
-  ["Contenedor 9", -34.609064, -68.317628, 9],
-  ["Contenedor 10", -34.594653, -68.343803, 10]
-];
-
-      function setMarkers(map) {
-        // Adds markers to the map.
-        // Marker sizes are expressed as a Size of X,Y where the origin of the image
-        // (0,0) is located in the top left of the image.
-        // Origins, anchor positions and coordinates of the marker increase in the X
-        // direction to the right and in the Y direction down.
-        const image = {
-          url: "http://34.70.178.216/papelera-de-reciclaje.png",
-          // This marker is 20 pixels wide by 32 pixels high.
-          size: new google.maps.Size(20, 20),
-          // The origin for this image is (0, 0).
-          origin: new google.maps.Point(0, 0),
-          // The anchor for this image is the base of the flagpole at (0, 32).
-          anchor: new google.maps.Point(0, 20),
-        };
-        // Shapes define the clickable region of the icon. The type defines an HTML
-        // <area> element 'poly' which traces out a polygon as a series of X,Y points.
-        // The final coordinate closes the poly by connecting to the first coordinate.
-        const shape = {
-          coords: [1, 1, 1, 20, 18, 20, 18, 1],
-          type: "poly",
-        };
-
-        for (let i = 0; i < contenedores.length; i++) {
-          const contenedor = contenedores[i];
-
-          new google.maps.Marker({
-            position: { lat: contenedor[1], lng: contenedor[2] },
-            map,
-            icon: image,
-            shape: shape,
-            title: contenedor[0],
-            zIndex: contenedor[3],
-          });
-        }
-      }
-      window.initMap = initMap;
     </script>
-    <style>
-      #map {
-        height: 30%;
-        width: 50%;
-      }
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
   </head>
   <body>
-    <div id="map"></div>
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtXaHO0zcrYOwz0QIA66C3iQaxEniZbEs&callback=initMap&v=weekly"
-      defer
-    ></script>
+    <div id="map" style="height: 400px; width: 100%;"></div>
+    <button id="myButton">Punto Ecologico mas cercano</button>
   </body>
 </html>
