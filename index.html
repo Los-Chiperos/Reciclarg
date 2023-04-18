@@ -1,22 +1,10 @@
 <!DOCTYPE html>
-<!--
- @license
- Copyright 2019 Google LLC. All Rights Reserved.
- SPDX-License-Identifier: Apache-2.0
--->
 <html>
   <head>
-    <title>Complex Marker Icons</title>
+    <title>Reciclarg </title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
-      // The following example creates complex markers to indicate beaches near
-      // Sydney, NSW, Australia. Note that the anchor is set to (0,32) to correspond
-      // to the base of the flagpole.
+
       function initMap() {
         const map = new google.maps.Map(document.getElementById("map"), {
           zoom: 13,
@@ -25,19 +13,18 @@
 
         setMarkers(map);
       }
-
-      // Data for the markers consisting of a name, a LatLng and a zIndex for the
+       // Data for the markers consisting of a name, a LatLng and a zIndex for the
       // order in which these markers should display on top of each other.
-const beaches = [  ["Playa 1", -34.615361, -68.337249, 4],
-  ["Playa 2", -34.617438, -68.321647, 5],
-  ["Playa 3", -34.619537, -68.332456, 3],
-  ["Playa 4", -34.621273, -68.344097, 2],
-  ["Playa 5", -34.598896, -68.324633, 1],
-  ["Playa 6", -34.620728, -68.311871, 6],
-  ["Playa 7", -34.620015, -68.316056, 7],
-  ["Playa 8", -34.618579, -68.312804, 8],
-  ["Playa 9", -34.609064, -68.317628, 9],
-  ["Playa 10", -34.594653, -68.343803, ]
+const contenedores = [  ["Contenedor 1", -34.615361, -68.337249, 4],
+  ["Contenedor 2", -34.617438, -68.321647, 5],
+  ["Contenedor 3", -34.619537, -68.332456, 3],
+  ["Contenedor 4", -34.621273, -68.344097, 2],
+  ["Contenedor 5", -34.598896, -68.324633, 1],
+  ["Contenedor 6", -34.620728, -68.311871, 6],
+  ["Contenedor 7", -34.620015, -68.316056, 7],
+  ["Contenedor 8", -34.618579, -68.312804, 8],
+  ["Contenedor 9", -34.609064, -68.317628, 9],
+  ["Contenedor 10", -34.594653, -68.343803, 10]
 ];
 
       function setMarkers(map) {
@@ -63,40 +50,26 @@ const beaches = [  ["Playa 1", -34.615361, -68.337249, 4],
           type: "poly",
         };
 
-        for (let i = 0; i < beaches.length; i++) {
-          const beach = beaches[i];
+        for (let i = 0; i < contenedores.length; i++) {
+          const contenedor = contenedores[i];
 
           new google.maps.Marker({
-            position: { lat: beach[1], lng: beach[2] },
+            position: { lat: contenedor[1], lng: contenedor[2] },
             map,
             icon: image,
             shape: shape,
-            title: beach[0],
-            zIndex: beach[3],
+            title: contenedor[0],
+            zIndex: contenedor[3],
           });
         }
       }
-
       window.initMap = initMap;
     </script>
     <style>
-      /**
-       * @license
-       * Copyright 2019 Google LLC. All Rights Reserved.
-       * SPDX-License-Identifier: Apache-2.0
-       */
-      /* 
-        * Always set the map height explicitly to define the size of the div element
-        * that contains the map. 
-        */
       #map {
         height: 30%;
         width: 50%;
       }
-
-      /* 
-      * Optional: Makes the sample page fill the window. 
-      */
       html,
       body {
         height: 100%;
