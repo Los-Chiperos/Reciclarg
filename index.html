@@ -72,7 +72,7 @@ markers.forEach(function (marker) {
         }
         // Crear una instancia de la clase google.maps.InfoWindow()
         var infowindow = new google.maps.InfoWindow({
-            content: marker.desc
+            content: marker.title +" " + marker.desc
         });
         // Almacenar la instancia de la ventana de información actualmente abierta
         currentInfoWindow = infowindow;
