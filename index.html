@@ -129,7 +129,8 @@ markers.forEach(function (marker) {
                             " metros de distancia.",
                     });
                     // Abrir la ventana de información en el marcador más cercano
-                    currentInfoWindow.close();
+                    if (currenteInfoWindow !== null){
+                    currentInfoWindow.close();}
                     infowindow.open(map, new google.maps.Marker({
                         position: new google.maps.LatLng(nearestMarker.lat, nearestMarker.lng),
                         map: map,
