@@ -13,7 +13,7 @@ jobs:
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
       - run: docker build -t nicolaszelarayan/reciclarg2023:$CIRCLE_SHA1 .
       - run: docker push nicolaszelarayan/reciclarg2023:$CIRCLE_SHA1
-      - run: ssh -o StrictHostKeyChecking=no -t -t nicolas_zelarayan@reciclarg.cloud "cd /home/nicolas_zelarayan/reciclarg_react && sudo git clone https://github.com/Los-Chiperos/Reciclarg.git"
+      - run: ssh -o StrictHostKeyChecking=no -t -t nicolas_zelarayan@reciclarg.cloud "cd /home/nicolas_zelarayan/reciclarg_react/Reciclarg && sudo git pull"
       - run: ssh -o StrictHostKeyChecking=no -t -t nicolas_zelarayan@reciclarg.cloud "cd /home/nicolas_zelarayan/reciclarg_react/Reciclarg && sudo npm install"
       - run: ssh -o StrictHostKeyChecking=no -t -t nicolas_zelarayan@reciclarg.cloud "cd /home/nicolas_zelarayan/reciclarg_react/Reciclarg && sudo npm run build"
       - run: ssh -o StrictHostKeyChecking=no -t -t nicolas_zelarayan@reciclarg.cloud "cd /home/nicolas_zelarayan/reciclarg_react/Reciclarg && sudo docker build -t nicolaszelarayan/reciclarg2023:$CIRCLE_SHA1 -f Dockerfile ."
