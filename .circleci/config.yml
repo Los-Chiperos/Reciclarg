@@ -1,0 +1,36 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/node:12.18
+
+    working_directory: ~/app
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+
+      - run:
+          name: Install Dependencies
+          command: npm install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      - run:
+          name: Build Production Bundle
+          command: npm run build
+
+      - deploy:
+          name: Deploy to Ubuntu 18 Server
+          command: |
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh -o StrictHostKeyChecking=no -l $SSH_USER $SSH_HOST 'cd /path/to/your/app && git pull'
+            ssh -o StrictHostKeyChecking=no -l $SSH_USER $SSH_HOST 'cd /path/to/your/app && npm install --production'
+            ssh -o StrictHostKeyChecking=no -l $SSH_USER $SSH_HOST 'cd /path/to/your/app && npm run build'
