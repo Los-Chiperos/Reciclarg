@@ -49,7 +49,7 @@ const Map = () => {
       ];
 
       const image = {
-        url: 'test.reciclarg.cloud/cesto.png',
+        url: 'reciclarg.cloud/cesto.png',
       };
 
       const bounds = new window.google.maps.LatLngBounds();
