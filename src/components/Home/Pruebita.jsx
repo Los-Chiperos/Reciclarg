@@ -1,6 +1,7 @@
 import eco from "../img/ecovidrio-bg-inv.jpg";
 import Map from "../pages/Map";
 import Contenedor from "./Contenedor";
+import Contac from "../pages/Contac";
 
 
 function Pruebita() {
@@ -39,6 +40,7 @@ function Pruebita() {
         </button>
       </div>
     </div>
+        <Contac/>
    </section>
     );
   }
