@@ -2,12 +2,18 @@ import React, { useEffect } from 'react';
 
 const Map = () => {
   useEffect(() => {
-    let map;
-    let currentInfoWindow = null;
+    // Cargar el script de la API de Google Maps
+    const googleMapsScript = document.createElement('script');
+    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCtXaHO0zcrYOwz0QIA66C3iQaxEniZbEs&callback=initMap&libraries=geometry`;
+    googleMapsScript.async = true;
+    window.document.body.appendChild(googleMapsScript);
+
+    // Inicializar el mapa una vez que el script se haya cargado
+    googleMapsScript.addEventListener('load', initMap);
 
     function initMap() {
       // Crear una instancia del mapa
-      map = new window.google.maps.Map(document.getElementById('map'), {
+      const map = new window.google.maps.Map(document.getElementById('map'), {
         center: { lat: -34.61772, lng: -68.33007 },
         zoom: 13,
       });
@@ -42,12 +48,13 @@ const Map = () => {
         { lat: -34.594653, lng: -68.343803, title: 'Punto ECO #10', desc: 'Punto de reciclaje apto para: vidrio, plástico y metales' },
       ];
 
-
       const image = {
-        url: '/cesto.png',
+        url: 'reciclarg.cloud/cesto.png',
       };
 
       const bounds = new window.google.maps.LatLngBounds();
+
+      let currentInfoWindow = null;
 
       markers.forEach(function (marker) {
         const position = new window.google.maps.LatLng(marker.lat, marker.lng);
@@ -73,9 +80,6 @@ const Map = () => {
           infowindow.open(map, mapMarker);
         });
       });
-
-      // Añadir los límites al mapa para que se ajuste a todos los marcadores
-      map.fitBounds(bounds);
 
       const button = document.getElementById('button');
 
@@ -139,20 +143,9 @@ const Map = () => {
         }
       });
     }
-
-    // Cargar el script de la API de Google Maps
-    const googleMapsScript = document.createElement('script');
-    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCtXaHO0zcrYOwz0QIA66C3iQaxEniZbEs&callback=initMap&libraries=geometry`;
-    googleMapsScript.async = true;
-    window.document.body.appendChild(googleMapsScript);
-
-    return () => {
-      // Limpiar el evento de carga del script al desmontar el componente
-      googleMapsScript.removeEventListener('load', initMap);
-    };
   }, []);
 
-  return <div id="map" style={{ height: '400px', width: '100%' }}></div>;
+  return <div id="map" style={{ height: '400px', width: "100px" }}></div>;
 };
 
 export default Map;
