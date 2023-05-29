@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 
 const Map = () => {
   useEffect(() => {
-    // Inicializar el mapa una vez que el script de la API de Google Maps se haya cargado
+    let map;
+    let currentInfoWindow = null;
+
     function initMap() {
       // Crear una instancia del mapa
-      const map = new window.google.maps.Map(document.getElementById('map'), {
+      map = new window.google.maps.Map(document.getElementById('map'), {
         center: { lat: -34.61772, lng: -68.33007 },
         zoom: 13,
       });
@@ -46,8 +48,6 @@ const Map = () => {
       };
 
       const bounds = new window.google.maps.LatLngBounds();
-
-      let currentInfoWindow = null;
 
       markers.forEach(function (marker) {
         const position = new window.google.maps.LatLng(marker.lat, marker.lng);
@@ -156,4 +156,3 @@ const Map = () => {
 };
 
 export default Map;
-
