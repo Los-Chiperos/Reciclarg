@@ -1,4 +1,6 @@
 import React from 'react';
+import axios from 'axios';
+
 
 const Login = () => {
     return (
@@ -22,14 +24,14 @@ const Login = () => {
             </a>
             <div className="mt-4">
               <label className="block text-green-600 text-sm font-bold mb-2">Email</label>
-              <input className="bg-amber-100 text-green-600 focus:outline-none focus:shadow-outline border border-green-600 rounded py-2 px-4 block w-full appearance-none" type="email" />
+              <input className="bg-amber-100 text-green-600 focus:outline-none focus:shadow-outline border border-green-600 rounded py-2 px-4 block w-full appearance-none" type="email"id='username' />
             </div>
             <div className="mt-4">
               <div className="flex justify-between">
                 <label className="block text-green-600 text-sm font-bold mb-2">Contraseña</label>
                 <a href="#" className="text-xs text-text-green-600"></a>
               </div>
-              <input className="bg-amber-100 text-gray-700 focus:outline-none focus:shadow-outline border border-green-600 rounded py-2 px-4 block w-full appearance-none" type="password" />
+              <input className="bg-amber-100 text-gray-700 focus:outline-none focus:shadow-outline border border-green-600 rounded py-2 px-4 block w-full appearance-none" type="password" id='password' />
               <br />
             </div>
             <label className="block text-green-600 font-medium" htmlFor="remember">
@@ -39,7 +41,7 @@ const Login = () => {
               </span>
             </label>
             <div className="mt-8">
-              <button className="bg-green-600 text-amber-100 font-bold py-2 px-4 w-full rounded hover:bg-amber-100 hover:text-green-600">Ingresar</button>
+              <button className="bg-green-600 text-amber-100 font-bold py-2 px-4 w-full rounded hover:bg-amber-100 hover:text-green-600"id='login' onClick={handleLogin}>Ingresar</button>
             </div>
             <div className="mt-4 flex items-center justify-between">
               <span className="border-b w-1/4 md:w-1/4"></span>
@@ -51,5 +53,27 @@ const Login = () => {
       </div>
     );
   }
+  const handleLogin = async () => {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+  console.log('username:', username);
+  console.log('password:', password);
+    try {
+      const response = await axios.post('https://backend.reciclarg.cloud', {
+        username: username,
+        password: password
+      });
+  
+      if (response.status === 200) {
+        alert('Autenticación exitosa');
+        // Redirige a otra página o realiza alguna acción adicional
+      } else {
+        alert('Error de autenticación');
+      }
+    } catch (error) {
+      alert('Error de autenticación');
+    }
+  };
+  
   
   export default Login;
